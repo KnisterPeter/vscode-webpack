@@ -78,11 +78,15 @@ export class Runner implements vscode.Disposable {
       cwd: workingDirectory,
     });
     this.webpack.on("error", (e) => {
-      console.error("error", e);
+      vscode.window.showErrorMessage(`webpack error: '${e.message}'`);
       this.webpack = undefined;
     });
     this.webpack.on("exit", (code) => {
-      console.log("exit", code);
+      if (code && code > 0) {
+        vscode.window.showErrorMessage(
+          `webpack terminated unexpected with code: ${code}`
+        );
+      }
       this.webpack = undefined;
     });
 
