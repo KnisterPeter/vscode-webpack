@@ -19,7 +19,7 @@
   "homepage": "https://github.com/KnisterPeter/vscode-webpack",
   "repository": {
     "type": "git",
-    "url": "git@github.com:KnisterPeter/vscode-webpack.git"
+    "url": "https://github.com/KnisterPeter/vscode-webpack.git"
   },
   "bugs": {
     "url": "https://github.com/KnisterPeter/vscode-webpack/issues"
