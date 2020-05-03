@@ -2,14 +2,33 @@
   "name": "vscode-webpack",
   "displayName": "vscode-webpack",
   "description": "Run webpack in code and track errors",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "icon": "images/webpack.png",
+  "galleryBanner": {
+    "color": "#ffffff",
+    "theme": "light"
+  },
   "publisher": "KnisterPeter",
   "engines": {
     "vscode": "^1.44.0"
   },
+  "author": {
+    "name": "Markus Wolf",
+    "email": "mail@markus-wolf.de"
+  },
+  "homepage": "https://github.com/KnisterPeter/vscode-webpack",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:KnisterPeter/vscode-webpack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KnisterPeter/vscode-webpack/issues"
+  },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "webpack"
   ],
   "activationEvents": [
     "workspaceContains:node_modules/webpack",
