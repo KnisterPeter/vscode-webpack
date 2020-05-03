@@ -32,7 +32,9 @@
   ],
   "activationEvents": [
     "workspaceContains:node_modules/webpack",
-    "onCommand:vscode-webpack.start"
+    "onCommand:vscode-webpack.start",
+    "onCommand:vscode-webpack.trigger",
+    "onCommand:vscode-webpack.stop"
   ],
   "main": "./out/extension.js",
   "contributes": {
