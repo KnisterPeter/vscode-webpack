@@ -51,6 +51,12 @@
           "scope": "window",
           "type": "string",
           "description": "The directory is running in. This defaults to your project root"
+        },
+        "webpack.startOnActivation": {
+          "scope": "window",
+          "type": "boolean",
+          "default": true,
+          "description": "Run webpack automatically on folder opening"
         }
       }
     },
