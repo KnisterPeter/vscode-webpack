@@ -4,7 +4,6 @@ import * as path from "path";
 import * as vscode from "vscode";
 import type { Stats } from "webpack";
 import type { Command } from "./command-type";
-import { getProjectDirectoy } from "./extension";
 
 export class Runner implements vscode.Disposable {
   private webpack: ChildProcess | undefined;
@@ -12,6 +11,8 @@ export class Runner implements vscode.Disposable {
   public get isRunning(): boolean {
     return this.webpack !== undefined;
   }
+
+  private workingDirectory: string | undefined;
 
   private configFile: string | undefined;
 
@@ -22,16 +23,19 @@ export class Runner implements vscode.Disposable {
   private statusItem: vscode.StatusBarItem;
 
   constructor({
+    workingDirectory,
     configFile,
     diagnostics,
     channel,
     statusItem,
   }: {
-    configFile: string | undefined;
+    workingDirectory: string | undefined;
+    configFile: string;
     diagnostics: vscode.DiagnosticCollection;
     channel: vscode.OutputChannel;
     statusItem: vscode.StatusBarItem;
   }) {
+    this.workingDirectory = workingDirectory;
     this.configFile = configFile;
     this.diagnostics = diagnostics;
     this.channel = channel;
@@ -44,18 +48,21 @@ export class Runner implements vscode.Disposable {
     this.webpack?.send(command);
   }
 
-  public async run(): Promise<void> {
-    const pwd = getProjectDirectoy();
-    if (!pwd) {
+  public async start() {
+    if (!this.workingDirectory) {
+      vscode.window.showErrorMessage(
+        "No working directory (defaults to project root)"
+      );
       return;
     }
+    const workingDirectory = this.workingDirectory;
 
     if (!this.configFile) {
       vscode.window.showWarningMessage("No webpack configuration file defined");
       return;
     }
 
-    const configFile = path.join(pwd, this.configFile);
+    const configFile = path.join(workingDirectory, this.configFile);
     if (!fs.existsSync(configFile)) {
       vscode.window.showWarningMessage(
         "Defined webpack configuration file doesn't exist"
@@ -68,7 +75,7 @@ export class Runner implements vscode.Disposable {
     }
 
     this.webpack = fork(path.join(__dirname, "webpack.js"), [], {
-      cwd: pwd,
+      cwd: workingDirectory,
     });
     this.webpack.on("error", (e) => {
       console.error("error", e);
@@ -95,7 +102,7 @@ export class Runner implements vscode.Disposable {
           this.updateStatusBar("alert");
           break;
         case "webpack-result-stats":
-          this.handleStats(data.stats, pwd);
+          this.handleStats(data.stats, workingDirectory);
           break;
         case "webpack-compile":
           if (data.done) {
@@ -108,14 +115,15 @@ export class Runner implements vscode.Disposable {
           throw new Error(`Unknown command '${data.command}'`);
       }
     });
+    this.statusItem.show();
     this.send({
       command: "start",
-      cwd: pwd,
+      cwd: workingDirectory,
       configFile: this.configFile,
     });
   }
 
-  private handleStats(stats: Stats.ToJsonOutput, rootDir: string): void {
+  private handleStats(stats: Stats.ToJsonOutput, rootDir: string) {
     this.diagnostics.clear();
 
     this.channel.appendLine(JSON.stringify(stats, null, 2));
@@ -184,7 +192,7 @@ export class Runner implements vscode.Disposable {
     return [];
   }
 
-  private updateStatusBar(icon: string, percentage?: number): void {
+  private updateStatusBar(icon: string, percentage?: number) {
     this.statusItem.text = `$(${icon}) ${
       percentage ? `${percentage}% ` : ""
     }webpack`;
@@ -201,6 +209,7 @@ export class Runner implements vscode.Disposable {
     this.diagnostics.clear();
     this.send({ command: "stop" });
     await new Promise((resolve) => setTimeout(resolve, 1000));
+    this.statusItem.hide();
 
     if (this.webpack) {
       this.webpack.kill();
@@ -208,7 +217,7 @@ export class Runner implements vscode.Disposable {
     }
   }
 
-  public dispose(): void {
+  public dispose() {
     console.log(`Stop webpack runner`);
     this.stop();
   }

@@ -46,6 +46,11 @@
           "type": "string",
           "default": "webpack.config.js",
           "description": "The webpack config file (e.g. webpack.config.js)"
+        },
+        "webpack.executionDirectory": {
+          "scope": "window",
+          "type": "string",
+          "description": "The directory is running in. This defaults to your project root"
         }
       }
     },

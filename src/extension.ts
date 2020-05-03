@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import { Runner } from "./runner";
 
 export function activate(context: vscode.ExtensionContext) {
+  const workingDirectory = getWebpackDirectory();
+
   const diagnostics = vscode.languages.createDiagnosticCollection("webpack");
   const channel = vscode.window.createOutputChannel("webpack");
   const statusItem = vscode.window.createStatusBarItem(
@@ -10,6 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
   statusItem.text = "webpack";
 
   let runner = new Runner({
+    workingDirectory: workingDirectory,
     configFile: getWebpackConfig(),
     diagnostics,
     channel,
@@ -26,6 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
         runner.dispose();
 
         runner = new Runner({
+          workingDirectory: getWebpackDirectory(),
           configFile: getWebpackConfig(),
           diagnostics,
           channel,
@@ -34,14 +38,13 @@ export function activate(context: vscode.ExtensionContext) {
         context.subscriptions.push(runner);
 
         if (isRunning) {
-          runner.run();
+          runner.start();
         }
       }
     }),
 
     vscode.commands.registerCommand("vscode-webpack.start", () => {
-      runner.run();
-      statusItem.show();
+      runner.start();
     }),
 
     vscode.commands.registerCommand("vscode-webpack.trigger", () => {
@@ -50,18 +53,13 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.commands.registerCommand("vscode-webpack.stop", () => {
       runner.stop();
-      statusItem.hide();
     })
   );
 }
 
 export function deactivate() {}
 
-function getWebpackConfig(): string | undefined {
-  return vscode.workspace.getConfiguration("webpack").get("configFile");
-}
-
-export function getProjectDirectoy(): string | undefined {
+function getProjectDirectoy(): string | undefined {
   if (!vscode.workspace.workspaceFolders) {
     return;
   }
@@ -71,4 +69,17 @@ export function getProjectDirectoy(): string | undefined {
   }
 
   return vscode.workspace.workspaceFolders[0].uri.fsPath;
+}
+
+function getWebpackConfig(): string {
+  return vscode.workspace
+    .getConfiguration("webpack")
+    .get("configFile", "webpack.config.js");
+}
+
+function getWebpackDirectory(): string | undefined {
+  const directory: string | undefined = vscode.workspace
+    .getConfiguration("webpack")
+    .get("executionDirectory");
+  return directory?.length ? directory : getProjectDirectoy();
 }
