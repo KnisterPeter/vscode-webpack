@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import * as path from "path";
 import { runTests } from "vscode-test";
 
@@ -9,6 +10,10 @@ async function runWorkspace(name: string) {
       __dirname,
       `../../src/test/${name}/workspace`
     );
+
+    execSync("yarn install", {
+      cwd: workspace,
+    });
 
     await runTests({
       extensionDevelopmentPath,
@@ -22,8 +27,8 @@ async function runWorkspace(name: string) {
 }
 
 async function main() {
-  await runWorkspace("suite");
-  await runWorkspace("simple");
+  await runWorkspace("empty-workspace");
+  await runWorkspace("simple-workspace");
 }
 
 main();
