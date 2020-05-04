@@ -2,54 +2,22 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { Runner } from "./runner";
+import { configureStatusBar } from "./status-bar";
 
-export let runner: Runner;
+export const runner = new Runner();
 
 export function activate(context: vscode.ExtensionContext) {
   const workingDirectory = getWebpackDirectory();
 
   const diagnostics = vscode.languages.createDiagnosticCollection("webpack");
   const channel = vscode.window.createOutputChannel("webpack");
-  const statusItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Left
-  );
-  statusItem.text = "webpack";
+  const statusBarItem = configureStatusBar(runner);
 
-  runner = new Runner();
   runner.configure({
     workingDirectory: workingDirectory,
     configFile: getWebpackConfig(),
     diagnostics,
     channel,
-  });
-
-  runner.onActive((event) => {
-    if (event.status === "enabled") {
-      statusItem.show();
-    } else {
-      statusItem.hide();
-    }
-  });
-
-  runner.onProgressBuild((event) => {
-    const icon = (() => {
-      switch (event.status) {
-        case "idle":
-          return "";
-        case "running":
-          return "$(repo-sync~spin)";
-        case "success":
-          return "$(check)";
-        case "failure":
-          return "$(alert)";
-        default:
-          return "";
-      }
-    })();
-
-    const progress = event.progress ? `${event.progress}% ` : "";
-
-    statusItem.text = `${icon} ${progress}webpack`;
   });
 
   if (getAutostart() && workingDirectory) {
@@ -59,9 +27,12 @@ export function activate(context: vscode.ExtensionContext) {
     }
   }
 
+  const { registerCommand } = vscode.commands;
+
   context.subscriptions.push(
     runner,
     diagnostics,
+    statusBarItem,
 
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("webpack")) {
@@ -74,15 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }),
 
-    vscode.commands.registerCommand("vscode-webpack.start", () =>
-      runner.start()
-    ),
-
-    vscode.commands.registerCommand("vscode-webpack.trigger", () =>
-      runner.invalidate()
-    ),
-
-    vscode.commands.registerCommand("vscode-webpack.stop", () => runner.stop())
+    registerCommand(`vscode-webpack.start`, () => runner.start()),
+    registerCommand(`vscode-webpack.trigger`, () => runner.invalidate()),
+    registerCommand(`vscode-webpack.stop`, () => runner.stop())
   );
 }
 

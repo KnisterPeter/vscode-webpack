@@ -33,8 +33,6 @@ export class Runner implements vscode.Disposable {
 
   private channel!: vscode.OutputChannel;
 
-  constructor() {}
-
   public async configure({
     workingDirectory,
     configFile,
