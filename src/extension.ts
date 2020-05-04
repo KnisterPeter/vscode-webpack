@@ -3,6 +3,8 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Runner } from "./runner";
 
+export let runner: Runner;
+
 export function activate(context: vscode.ExtensionContext) {
   const workingDirectory = getWebpackDirectory();
 
@@ -13,7 +15,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
   statusItem.text = "webpack";
 
-  let runner = new Runner({
+  runner = new Runner({
     workingDirectory: workingDirectory,
     configFile: getWebpackConfig(),
     diagnostics,
