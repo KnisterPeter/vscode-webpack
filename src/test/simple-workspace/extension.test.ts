@@ -27,7 +27,7 @@ describe("Extension Test with webpack in workspace", () => {
       await vscode.commands.executeCommand("vscode-webpack.trigger");
 
       return promise;
-    });
+    }).retries(2);
 
     describe("when saving a file", async () => {
       const doc = await vscode.workspace.openTextDocument(
