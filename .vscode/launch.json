@@ -18,29 +18,29 @@
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
-      "name": "Extension Tests (suite)",
+      "name": "Extension Tests (empty-workspace)",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
-        "${workspaceFolder}/src/test/suite/workspace"
+        "--extensionTestsPath=${workspaceFolder}/out/test/empty-workspace/index",
+        "${workspaceFolder}/src/test/empty-workspace/workspace"
       ],
       "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
     },
     {
-      "name": "Extension Tests (simple)",
+      "name": "Extension Tests (simple-workspace)",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
         "--disable-extensions",
         "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test/simple/index",
-        "${workspaceFolder}/src/test/simple/workspace"
+        "--extensionTestsPath=${workspaceFolder}/out/test/simple-workspace/index",
+        "${workspaceFolder}/src/test/simple-workspace/workspace"
       ],
       "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"

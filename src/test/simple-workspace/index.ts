@@ -5,6 +5,7 @@ import * as path from "path";
 export function run(): Promise<void> {
   const mocha = new Mocha({
     color: true,
+    timeout: 10 * 1000,
   });
 
   const testsRoot = path.resolve(__dirname);

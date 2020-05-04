@@ -6,9 +6,22 @@ import type { Stats } from "webpack";
 import type { Command } from "./command-type";
 
 export class Runner implements vscode.Disposable {
+  private activeEmitter = new vscode.EventEmitter<{
+    status: "enabled" | "disabled";
+  }>();
+
+  public readonly onActive = this.activeEmitter.event;
+
+  private progressBuildEmitter = new vscode.EventEmitter<{
+    status: "idle" | "running" | "success" | "failure";
+    progress?: number;
+  }>();
+
+  public readonly onProgressBuild = this.progressBuildEmitter.event;
+
   private webpack: ChildProcess | undefined;
 
-  public get isRunning(): boolean {
+  public get isActive(): boolean {
     return this.webpack !== undefined;
   }
 
@@ -16,32 +29,34 @@ export class Runner implements vscode.Disposable {
 
   private configFile: string | undefined;
 
-  private diagnostics: vscode.DiagnosticCollection;
+  private diagnostics!: vscode.DiagnosticCollection;
 
-  private channel: vscode.OutputChannel;
+  private channel!: vscode.OutputChannel;
 
-  private statusItem: vscode.StatusBarItem;
+  constructor() {}
 
-  constructor({
+  public async configure({
     workingDirectory,
     configFile,
     diagnostics,
     channel,
-    statusItem,
   }: {
     workingDirectory: string | undefined;
     configFile: string;
     diagnostics: vscode.DiagnosticCollection;
     channel: vscode.OutputChannel;
-    statusItem: vscode.StatusBarItem;
   }) {
     this.workingDirectory = workingDirectory;
     this.configFile = configFile;
     this.diagnostics = diagnostics;
     this.channel = channel;
-    this.statusItem = statusItem;
 
     this.diagnostics.clear();
+
+    if (this.isActive) {
+      await this.stop();
+      await this.start();
+    }
   }
 
   private send(command: Command) {
@@ -70,7 +85,7 @@ export class Runner implements vscode.Disposable {
       return;
     }
 
-    if (this.isRunning) {
+    if (this.isActive) {
       return;
     }
 
@@ -103,28 +118,31 @@ export class Runner implements vscode.Disposable {
 
           this.channel.appendLine(JSON.stringify(data.error, null, 2));
 
-          this.updateStatusBar("alert");
+          this.progressBuildEmitter.fire({
+            status: "failure",
+          });
           break;
         case "webpack-result-stats":
           this.handleStats(data.stats, workingDirectory);
           break;
         case "webpack-compile":
-          if (data.done) {
-            this.updateStatusBar("repo-sync", data.progress);
-          } else {
-            this.updateStatusBar("repo-sync~spin", data.progress);
-          }
+          this.progressBuildEmitter.fire({
+            status: "running",
+            progress: data.progress,
+          });
           break;
         default:
           throw new Error(`Unknown command '${data.command}'`);
       }
     });
-    this.statusItem.show();
+
     this.send({
       command: "start",
       cwd: workingDirectory,
       configFile: this.configFile,
     });
+
+    this.activeEmitter.fire({ status: "enabled" });
   }
 
   private handleStats(stats: Stats.ToJsonOutput, rootDir: string) {
@@ -164,9 +182,13 @@ export class Runner implements vscode.Disposable {
         this.diagnostics.set(uri, set);
       }
 
-      this.updateStatusBar("alert");
+      this.progressBuildEmitter.fire({
+        status: "failure",
+      });
     } else {
-      this.updateStatusBar("check");
+      this.progressBuildEmitter.fire({
+        status: "success",
+      });
     }
   }
 
@@ -196,12 +218,6 @@ export class Runner implements vscode.Disposable {
     return [];
   }
 
-  private updateStatusBar(icon: string, percentage?: number) {
-    this.statusItem.text = `$(${icon}) ${
-      percentage ? `${percentage}% ` : ""
-    }webpack`;
-  }
-
   public invalidate() {
     this.diagnostics.clear();
     this.send({
@@ -210,10 +226,11 @@ export class Runner implements vscode.Disposable {
   }
 
   public async stop() {
+    this.activeEmitter.fire({ status: "disabled" });
+
     this.diagnostics.clear();
     this.send({ command: "stop" });
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    this.statusItem.hide();
 
     if (this.webpack) {
       this.webpack.kill();

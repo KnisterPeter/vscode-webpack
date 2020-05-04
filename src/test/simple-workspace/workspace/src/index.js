@@ -1,5 +1,5 @@
 console.log("Hello World!");
 
-{asdff-asdf:13}
+{ asdff - asdf: 13 }
 
 console.log("yolo");
