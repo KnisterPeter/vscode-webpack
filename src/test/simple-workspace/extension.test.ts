@@ -29,7 +29,7 @@ describe("Extension Test with webpack in workspace", () => {
       return promise;
     }).retries(2);
 
-    describe("when saving a file", async () => {
+    describe("when fixing and saving a file", async () => {
       const doc = await vscode.workspace.openTextDocument(
         vscode.Uri.file(
           path.resolve(
