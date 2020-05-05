@@ -22,7 +22,7 @@ jobs:
           git config --global user.name "Markus Wolf"
       - run: yarn shipjs prepare --yes --no-browse
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
 
   create_done_comment:
     if: success()
