@@ -1,6 +1,9 @@
-# Changelog
+## 0.1.1 (2020-05-05)
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+- feat: add error handling
+- feat: add autostart configuration
+- feat: allow to configure webpack working directory
+- fix: add missing activation commands
 
 ## 0.1.0 (2020-05-03)
 
