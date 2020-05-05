@@ -13,6 +13,8 @@ jobs:
       - uses: actions/setup-node@v1
       - run: |
           yarn install
+      - run: |
           yarn shipjs trigger
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}

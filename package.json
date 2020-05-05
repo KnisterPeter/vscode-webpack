@@ -88,7 +88,7 @@
     "prerelease": "git checkout master && git pull origin master && yarn run vscode:prepublish",
     "release": "standard-version",
     "postrelease": "git push --follow-tags origin master",
-    "publish-extension": "vsce publish $(node -e \"console.log(require('./package.json').version)\")"
+    "publish-extension": "vsce publish --pat $VSCE_TOKEN $(node -e \"console.log(require('./package.json').version)\")"
   },
   "devDependencies": {
     "@types/glob": "^7.1.1",
