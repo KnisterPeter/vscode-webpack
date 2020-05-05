@@ -1,3 +1,12 @@
+## 0.1.4 (2020-05-05)
+
+
+### Bug Fixes
+
+* resolve webpack on the cwd ([#10](https://github.com/KnisterPeter/vscode-webpack/issues/10)) ([2fe6ccd](https://github.com/KnisterPeter/vscode-webpack/commit/2fe6ccd12fca0e2619b623407275f723e66646eb))
+
+
+
 ## 0.1.3 (2020-05-05)
 
 
