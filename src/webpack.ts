@@ -36,7 +36,7 @@ async function startWebpack({
   configFile: string;
 }) {
   try {
-    const webpackPath = path.resolve(cwd, "node_modules", "webpack");
+    const webpackPath = require.resolve("webpack", { paths: [cwd] });
     const webpack = require(webpackPath);
 
     const config: webpack.Configuration = require(path.join(cwd, configFile));
