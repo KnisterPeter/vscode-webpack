@@ -3,6 +3,25 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { runner } from "../../extension";
 
+function position(l: number, c: number): vscode.Position {
+  return new vscode.Position(l, c);
+}
+
+function range(sl: number, sc: number, el: number, ec: number): vscode.Range {
+  return new vscode.Range(position(sl, sc), position(el, ec));
+}
+
+function expectDiagnostic(
+  diagnostic: vscode.Diagnostic | undefined,
+  matcher: Partial<vscode.Diagnostic>
+): void {
+  expect(diagnostic).toBeTruthy();
+
+  Object.keys(matcher).forEach((key) => {
+    expect((diagnostic as any)[key]).toEqual((matcher as any)[key]);
+  });
+}
+
 describe("Extension Test with webpack in workspace", () => {
   it("should be activated by default", () => {
     expect(
@@ -17,22 +36,45 @@ describe("Extension Test with webpack in workspace", () => {
 
     describe("while triggering builds", () => {
       let doc: vscode.TextDocument;
-      const insertAt = new vscode.Position(2, 0);
-      const removeFrom = new vscode.Range(insertAt, new vscode.Position(2, 2));
+
+      const insertCommentAt = position(2, 0);
+      const removeCommentFrom = range(2, 0, 2, 2);
 
       async function insertComment(): Promise<void> {
-        if (doc.getText(removeFrom) !== "//") {
+        if (doc.getText(removeCommentFrom) !== "//") {
           const edit = new vscode.WorkspaceEdit();
-          edit.insert(doc.uri, insertAt, "//");
+          edit.insert(doc.uri, insertCommentAt, "//");
           await vscode.workspace.applyEdit(edit);
           await doc.save();
         }
       }
 
       async function removeComment(): Promise<void> {
-        if (doc.getText(removeFrom) === "//") {
+        if (doc.getText(removeCommentFrom) === "//") {
           const edit = new vscode.WorkspaceEdit();
-          edit.delete(doc.uri, removeFrom);
+          edit.delete(doc.uri, removeCommentFrom);
+          await vscode.workspace.applyEdit(edit);
+          await doc.save();
+        }
+      }
+
+      const importCode = `import './does-not-exist';\n`;
+      const insertImportAt = position(0, 0);
+      const removeImportFrom = range(0, 0, 1, 0);
+
+      async function addBrokenImport(): Promise<void> {
+        if (doc.getText(removeImportFrom) !== importCode) {
+          const edit = new vscode.WorkspaceEdit();
+          edit.insert(doc.uri, insertImportAt, importCode);
+          await vscode.workspace.applyEdit(edit);
+          await doc.save();
+        }
+      }
+
+      async function removeBrokenImport(): Promise<void> {
+        if (doc.getText(removeImportFrom) === importCode) {
+          const edit = new vscode.WorkspaceEdit();
+          edit.delete(doc.uri, removeImportFrom);
           await vscode.workspace.applyEdit(edit);
           await doc.save();
         }
@@ -65,7 +107,17 @@ describe("Extension Test with webpack in workspace", () => {
 
           await removeComment();
 
-          return promise;
+          await promise;
+
+          const diagnostics = vscode.languages
+            .getDiagnostics(doc.uri)
+            .filter((diag) => diag.source === "webpack");
+          expect(diagnostics).toHaveLength(1);
+
+          expectDiagnostic(diagnostics[0], {
+            severity: vscode.DiagnosticSeverity.Error,
+            range: range(2, 13, 2, 14),
+          });
         });
       });
 
@@ -85,7 +137,42 @@ describe("Extension Test with webpack in workspace", () => {
 
           await insertComment();
 
-          return promise;
+          await promise;
+
+          const diagnostics = vscode.languages
+            .getDiagnostics(doc.uri)
+            .filter((diag) => diag.source === "webpack");
+          expect(diagnostics).toHaveLength(0);
+        });
+      });
+
+      describe("when inserting broken import", () => {
+        after(async () => {
+          await removeBrokenImport();
+        });
+
+        it("should report failure", async () => {
+          const promise = new Promise((resolve) => {
+            runner.onProgressBuild((event) => {
+              if (event.status === "failure") {
+                resolve();
+              }
+            });
+          });
+
+          await addBrokenImport();
+
+          await promise;
+
+          const diagnostics = vscode.languages
+            .getDiagnostics(doc.uri)
+            .filter((diag) => diag.source === "webpack");
+          expect(diagnostics).toHaveLength(1);
+
+          expectDiagnostic(diagnostics[0], {
+            severity: vscode.DiagnosticSeverity.Error,
+            range: range(0, 0, 0, 1),
+          });
         });
       });
     });

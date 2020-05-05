@@ -81,7 +81,7 @@ async function startWebpack({
       }
       send({
         command: "webpack-result-stats",
-        stats: stats.toJson("verbose", true),
+        stats: stats.toJson({ all: false, errors: true, warnings: true }, true),
       });
     });
   } catch (e) {

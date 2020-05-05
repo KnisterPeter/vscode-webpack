@@ -196,11 +196,11 @@ export class Runner implements vscode.Disposable {
     rootDir: string
   ): [vscode.Uri, vscode.Diagnostic] | [] {
     const [, file, lineStr, columnStr] =
-      input.match(/^([^\s]+)\s(\d+):(\d+)/) ?? [];
-    if (file && lineStr && columnStr) {
+      input.match(/^([^\s]+)(?:\s(\d+):(\d+))?/) ?? [];
+    if (file) {
       const uri = vscode.Uri.file(path.join(rootDir, file));
-      const line = parseInt(lineStr, 10) - 1;
-      const column = parseInt(columnStr, 10) - 1;
+      const line = lineStr ? parseInt(lineStr, 10) - 1 : 0;
+      const column = columnStr ? parseInt(columnStr, 10) - 1 : 0;
       const start = new vscode.Position(line, column);
       const end = new vscode.Position(line, column + 1);
 
