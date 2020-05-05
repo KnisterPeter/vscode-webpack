@@ -31,7 +31,7 @@
     "webpack"
   ],
   "activationEvents": [
-    "workspaceContains:node_modules/webpack",
+    "workspaceContains:node_modules/.bin/webpack",
     "onCommand:vscode-webpack.start",
     "onCommand:vscode-webpack.trigger",
     "onCommand:vscode-webpack.stop"
