@@ -1,5 +1,5 @@
 module.exports = {
   mergeStrategy: { toSameBranch: ["master"] },
-  buildCommand: ({}) => "yarn vscode:prepublish",
+  buildCommand: ({}) => null,
   publishCommand: () => "yarn publish-extension",
 };
