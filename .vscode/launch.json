@@ -12,7 +12,8 @@
       "runtimeExecutable": "${execPath}",
       "args": [
         "--disable-extensions",
-        "--extensionDevelopmentPath=${workspaceFolder}"
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "${workspaceFolder}/src/test/simple-workspace/workspace"
       ],
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
       "preLaunchTask": "${defaultBuildTask}"
