@@ -15,56 +15,78 @@ describe("Extension Test with webpack in workspace", () => {
       expect(runner.isActive).toBeTruthy();
     });
 
-    it("should report an error if build failed", async () => {
-      const promise = new Promise((resolve) => {
-        runner.onProgressBuild((event) => {
-          if (event.status === "failure") {
-            resolve();
-          }
-        });
-      });
-
-      await vscode.commands.executeCommand("vscode-webpack.trigger");
-
-      return promise;
-    }).retries(2);
-
-    describe("when fixing and saving a file", async () => {
-      const doc = await vscode.workspace.openTextDocument(
-        vscode.Uri.file(
-          path.resolve(
-            vscode.workspace.workspaceFolders![0].uri.fsPath,
-            "src/index.js"
-          )
-        )
-      );
+    describe("while triggering builds", () => {
+      let doc: vscode.TextDocument;
       const insertAt = new vscode.Position(2, 0);
       const removeFrom = new vscode.Range(insertAt, new vscode.Position(2, 2));
 
-      after(async () => {
+      async function insertComment(): Promise<void> {
+        if (doc.getText(removeFrom) !== "//") {
+          const edit = new vscode.WorkspaceEdit();
+          edit.insert(doc.uri, insertAt, "//");
+          await vscode.workspace.applyEdit(edit);
+          await doc.save();
+        }
+      }
+
+      async function removeComment(): Promise<void> {
         if (doc.getText(removeFrom) === "//") {
           const edit = new vscode.WorkspaceEdit();
           edit.delete(doc.uri, removeFrom);
           await vscode.workspace.applyEdit(edit);
           await doc.save();
         }
+      }
+
+      before(async () => {
+        doc = await vscode.workspace.openTextDocument(
+          vscode.Uri.file(
+            path.resolve(
+              vscode.workspace.workspaceFolders![0].uri.fsPath,
+              "src/index.js"
+            )
+          )
+        );
       });
 
-      it("should report success", async () => {
-        const promise = new Promise((resolve) => {
-          runner.onProgressBuild((event) => {
-            if (event.status === "success") {
-              resolve();
-            }
-          });
+      describe("when breaking and saving a file", () => {
+        after(async () => {
+          await insertComment();
         });
 
-        const edit = new vscode.WorkspaceEdit();
-        edit.insert(doc.uri, insertAt, "//");
-        await vscode.workspace.applyEdit(edit);
-        await doc.save();
+        it("should report failure", async () => {
+          const promise = new Promise((resolve) => {
+            runner.onProgressBuild((event) => {
+              if (event.status === "failure") {
+                resolve();
+              }
+            });
+          });
 
-        return promise;
+          await removeComment();
+
+          return promise;
+        });
+      });
+
+      describe("when fixing and saving a file", async () => {
+        before(async () => {
+          await removeComment();
+        });
+
+        it("should report success", async () => {
+          const promise = new Promise((resolve) => {
+            runner.onProgressBuild((event) => {
+              if (event.status === "success") {
+                resolve();
+              }
+            });
+          });
+
+          await insertComment();
+
+          return promise;
+        });
       });
     });
 
