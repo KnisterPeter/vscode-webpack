@@ -2,7 +2,7 @@
   "name": "vscode-webpack",
   "displayName": "vscode-webpack",
   "description": "Run webpack in code and track errors",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "icon": "images/webpack.png",
   "galleryBanner": {
     "color": "#ffffff",
