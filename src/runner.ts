@@ -4,6 +4,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import type { Stats } from "webpack";
 import type { Command } from "./command-type";
+import { createDiagnostic } from "./diagnostics";
 
 export class Runner implements vscode.Disposable {
   private activeEmitter = new vscode.EventEmitter<{
@@ -154,7 +155,7 @@ export class Runner implements vscode.Disposable {
       for (const error of stats.errors) {
         this.channel.appendLine(error);
 
-        const [uri, diagnostic] = this.createDiagnostic(
+        const [uri, diagnostic] = createDiagnostic(
           vscode.DiagnosticSeverity.Error,
           error,
           rootDir
@@ -166,7 +167,7 @@ export class Runner implements vscode.Disposable {
       for (const warning of stats.warnings) {
         this.channel.appendLine(warning);
 
-        const [uri, diagnostic] = this.createDiagnostic(
+        const [uri, diagnostic] = createDiagnostic(
           vscode.DiagnosticSeverity.Warning,
           warning,
           rootDir
@@ -188,32 +189,6 @@ export class Runner implements vscode.Disposable {
         status: "success",
       });
     }
-  }
-
-  private createDiagnostic(
-    severity: vscode.DiagnosticSeverity,
-    input: string,
-    rootDir: string
-  ): [vscode.Uri, vscode.Diagnostic] | [] {
-    const [, file, lineStr, columnStr] =
-      input.match(/^([^\s]+)(?:\s(\d+):(\d+))?/) ?? [];
-    if (file) {
-      const uri = vscode.Uri.file(path.join(rootDir, file));
-      const line = lineStr ? parseInt(lineStr, 10) - 1 : 0;
-      const column = columnStr ? parseInt(columnStr, 10) - 1 : 0;
-      const start = new vscode.Position(line, column);
-      const end = new vscode.Position(line, column + 1);
-
-      const diagnostic = new vscode.Diagnostic(
-        new vscode.Range(start, end),
-        input.split("\n").slice(1).join("\n"),
-        severity
-      );
-      diagnostic.source = "webpack";
-
-      return [uri, diagnostic];
-    }
-    return [];
   }
 
   public invalidate() {

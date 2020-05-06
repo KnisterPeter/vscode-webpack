@@ -11,17 +11,6 @@ function range(sl: number, sc: number, el: number, ec: number): vscode.Range {
   return new vscode.Range(position(sl, sc), position(el, ec));
 }
 
-function expectDiagnostic(
-  diagnostic: vscode.Diagnostic | undefined,
-  matcher: Partial<vscode.Diagnostic>
-): void {
-  expect(diagnostic).toBeTruthy();
-
-  Object.keys(matcher).forEach((key) => {
-    expect((diagnostic as any)[key]).toEqual((matcher as any)[key]);
-  });
-}
-
 describe("Extension Test with webpack in workspace", () => {
   it("should be activated by default", () => {
     expect(
@@ -113,11 +102,6 @@ describe("Extension Test with webpack in workspace", () => {
             .getDiagnostics(doc.uri)
             .filter((diag) => diag.source === "webpack");
           expect(diagnostics).toHaveLength(1);
-
-          expectDiagnostic(diagnostics[0], {
-            severity: vscode.DiagnosticSeverity.Error,
-            range: range(2, 13, 2, 14),
-          });
         });
       });
 
@@ -168,11 +152,6 @@ describe("Extension Test with webpack in workspace", () => {
             .getDiagnostics(doc.uri)
             .filter((diag) => diag.source === "webpack");
           expect(diagnostics).toHaveLength(1);
-
-          expectDiagnostic(diagnostics[0], {
-            severity: vscode.DiagnosticSeverity.Error,
-            range: range(0, 0, 0, 1),
-          });
         });
       });
     });
