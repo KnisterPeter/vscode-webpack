@@ -6,6 +6,16 @@ import type { Stats } from "webpack";
 import type { Command } from "./command-type";
 import { createDiagnostic } from "./diagnostics";
 
+export type RunnerBuildStatus = "idle" | "running" | "success" | "failure";
+
+/**
+ * @param current The current value
+ * @param next The new value (or in case of undefined its counted as unchanged)
+ */
+function changed<T>(current: T, next: T): boolean {
+  return next !== undefined && current !== next;
+}
+
 export class Runner implements vscode.Disposable {
   private activeEmitter = new vscode.EventEmitter<{
     status: "enabled" | "disabled";
@@ -14,7 +24,7 @@ export class Runner implements vscode.Disposable {
   public readonly onActive = this.activeEmitter.event;
 
   private progressBuildEmitter = new vscode.EventEmitter<{
-    status: "idle" | "running" | "success" | "failure";
+    status: RunnerBuildStatus;
     progress?: number;
   }>();
 
@@ -40,15 +50,28 @@ export class Runner implements vscode.Disposable {
     diagnostics,
     channel,
   }: {
-    workingDirectory: string | undefined;
-    configFile: string;
-    diagnostics: vscode.DiagnosticCollection;
-    channel: vscode.OutputChannel;
+    workingDirectory?: string | undefined;
+    configFile?: string;
+    diagnostics?: vscode.DiagnosticCollection;
+    channel?: vscode.OutputChannel;
   }) {
-    this.workingDirectory = workingDirectory;
-    this.configFile = configFile;
-    this.diagnostics = diagnostics;
-    this.channel = channel;
+    if (
+      !changed(this.workingDirectory, workingDirectory) &&
+      !changed(this.configFile, configFile) &&
+      !changed(this.diagnostics, diagnostics) &&
+      !changed(this.channel, channel)
+    ) {
+      return;
+    }
+
+    this.workingDirectory =
+      workingDirectory === null
+        ? undefined
+        : workingDirectory ?? this.workingDirectory;
+    this.configFile =
+      configFile === null ? undefined : configFile ?? this.configFile;
+    this.diagnostics = diagnostics ?? this.diagnostics;
+    this.channel = channel ?? this.channel;
 
     this.diagnostics.clear();
 
@@ -79,7 +102,9 @@ export class Runner implements vscode.Disposable {
     const configFile = path.join(workingDirectory, this.configFile);
     if (!fs.existsSync(configFile)) {
       vscode.window.showWarningMessage(
-        "Defined webpack configuration file doesn't exist"
+        `Defined webpack configuration file '${vscode.workspace.asRelativePath(
+          configFile
+        )}' doesn't exist`
       );
       return;
     }
@@ -198,17 +223,16 @@ export class Runner implements vscode.Disposable {
     });
   }
 
-  public async stop() {
-    this.activeEmitter.fire({ status: "disabled" });
-
+  public stop() {
     this.diagnostics.clear();
     this.send({ command: "stop" });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     if (this.webpack) {
       this.webpack.kill();
       this.webpack = undefined;
     }
+
+    this.activeEmitter.fire({ status: "disabled" });
   }
 
   public dispose() {

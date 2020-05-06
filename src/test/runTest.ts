@@ -29,6 +29,7 @@ async function runWorkspace(name: string) {
 async function main() {
   await runWorkspace("empty-workspace");
   await runWorkspace("simple-workspace");
+  await runWorkspace("complex-workspace");
 }
 
 main();

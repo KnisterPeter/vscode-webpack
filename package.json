@@ -32,28 +32,10 @@
   ],
   "activationEvents": [
     "workspaceContains:node_modules/.bin/webpack",
-    "onCommand:vscode-webpack.start",
-    "onCommand:vscode-webpack.trigger",
-    "onCommand:vscode-webpack.stop"
+    "onCommand:vscode-webpack.trigger"
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "configuration": {
-      "title": "webpack",
-      "properties": {
-        "webpack.configFile": {
-          "scope": "window",
-          "type": "string",
-          "default": "webpack.config.js",
-          "description": "The webpack config file (e.g. webpack.config.js)"
-        },
-        "webpack.executionDirectory": {
-          "scope": "window",
-          "type": "string",
-          "description": "The directory is running in. This defaults to your project root"
-        }
-      }
-    },
     "taskDefinitions": [
       {
         "type": "webpack",
@@ -69,21 +51,29 @@
         }
       }
     ],
-    "commands": [
+    "problemMatchers": [
       {
-        "command": "vscode-webpack.start",
-        "category": "webpack",
-        "title": "Start"
-      },
+        "applyTo": "allDocuments",
+        "background": {
+          "activeOnStart": false,
+          "beginsPattern": "Build started",
+          "endsPattern": "Build (?:successful|failed)"
+        },
+        "fileLocation": "relative",
+        "pattern": {
+          "regexp": "^doesn't-need-to-match$",
+          "file": 1,
+          "location": 2,
+          "message": 3
+        },
+        "name": "knisterpeter.vscode-webpack"
+      }
+    ],
+    "commands": [
       {
         "command": "vscode-webpack.trigger",
         "category": "webpack",
         "title": "Trigger"
-      },
-      {
-        "command": "vscode-webpack.stop",
-        "category": "webpack",
-        "title": "Stop"
       }
     ]
   },
