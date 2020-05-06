@@ -1,8 +1,7 @@
-import * as fs from "fs";
-import * as path from "path";
 import * as vscode from "vscode";
 import { Runner } from "./runner";
 import { configureStatusBar } from "./status-bar";
+import { WebpackTaskProvider } from "./webpack-task";
 
 export const runner = new Runner();
 
@@ -20,19 +19,17 @@ export function activate(context: vscode.ExtensionContext) {
     channel,
   });
 
-  if (getAutostart() && workingDirectory) {
-    const configFile = path.join(workingDirectory, getWebpackConfig());
-    if (fs.existsSync(configFile)) {
-      runner.start();
-    }
-  }
-
   const { registerCommand } = vscode.commands;
 
   context.subscriptions.push(
     runner,
     diagnostics,
     statusBarItem,
+
+    vscode.tasks.registerTaskProvider(
+      "webpack",
+      new WebpackTaskProvider(runner)
+    ),
 
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("webpack")) {
@@ -76,10 +73,4 @@ function getWebpackDirectory(): string | undefined {
     .getConfiguration("webpack")
     .get("executionDirectory");
   return directory?.length ? directory : getProjectDirectoy();
-}
-
-function getAutostart(): boolean {
-  return vscode.workspace
-    .getConfiguration("webpack")
-    .get("startOnActivation", true);
 }

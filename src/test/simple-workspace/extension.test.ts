@@ -19,8 +19,9 @@ describe("Extension Test with webpack in workspace", () => {
   });
 
   describe("the runner", () => {
-    it("should be running by default", () => {
-      expect(runner.isActive).toBeTruthy();
+    before(async () => {
+      const tasks = await vscode.tasks.fetchTasks({ type: "webpack" });
+      await vscode.tasks.executeTask(tasks[0]);
     });
 
     describe("while triggering builds", () => {
@@ -81,7 +82,7 @@ describe("Extension Test with webpack in workspace", () => {
       });
 
       describe("when breaking and saving a file", () => {
-        after(async () => {
+        afterEach(async () => {
           await insertComment();
         });
 
@@ -106,7 +107,7 @@ describe("Extension Test with webpack in workspace", () => {
       });
 
       describe("when fixing and saving a file", async () => {
-        before(async () => {
+        beforeEach(async () => {
           await removeComment();
         });
 
@@ -131,7 +132,7 @@ describe("Extension Test with webpack in workspace", () => {
       });
 
       describe("when inserting broken import", () => {
-        after(async () => {
+        afterEach(async () => {
           await removeBrokenImport();
         });
 
