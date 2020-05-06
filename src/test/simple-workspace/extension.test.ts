@@ -19,9 +19,50 @@ describe("Extension Test with webpack in workspace", () => {
   });
 
   describe("the runner", () => {
-    before(async () => {
+    let execution: vscode.TaskExecution | undefined;
+
+    async function startTask() {
       const tasks = await vscode.tasks.fetchTasks({ type: "webpack" });
-      await vscode.tasks.executeTask(tasks[0]);
+      execution = await vscode.tasks.executeTask(tasks[0]);
+    }
+
+    async function stopTask() {
+      execution?.terminate();
+    }
+
+    describe("lifecycle", () => {
+      afterEach(async () => {
+        await stopTask();
+      });
+
+      it("should notify if started", async () => {
+        const promise = new Promise((resolve) => {
+          runner.onActive((event) => {
+            if (event.status === "enabled") {
+              resolve();
+            }
+          });
+        });
+
+        await startTask();
+
+        return promise;
+      });
+
+      it("should notify if stopped", async () => {
+        const promise = new Promise((resolve) => {
+          runner.onActive((event) => {
+            if (event.status === "disabled") {
+              resolve();
+            }
+          });
+        });
+
+        await startTask();
+        await stopTask();
+
+        return promise;
+      });
     });
 
     describe("while triggering builds", () => {
@@ -79,6 +120,28 @@ describe("Extension Test with webpack in workspace", () => {
             )
           )
         );
+      });
+
+      before(async () => {
+        await startTask();
+        await new Promise((resolve) => {
+          runner.onActive((event) => {
+            if (event.status === "enabled") {
+              resolve();
+            }
+          });
+        });
+      });
+
+      after(async () => {
+        await stopTask();
+        await new Promise((resolve) => {
+          runner.onActive((event) => {
+            if (event.status === "disabled") {
+              resolve();
+            }
+          });
+        });
       });
 
       describe("when breaking and saving a file", () => {
@@ -155,35 +218,6 @@ describe("Extension Test with webpack in workspace", () => {
           expect(diagnostics).toHaveLength(1);
         });
       });
-    });
-
-    it("should notify if started", async () => {
-      const promise = new Promise((resolve) => {
-        runner.onActive((event) => {
-          if (event.status === "enabled") {
-            resolve();
-          }
-        });
-      });
-
-      await vscode.commands.executeCommand("vscode-webpack.stop");
-      await vscode.commands.executeCommand("vscode-webpack.start");
-
-      return promise;
-    });
-
-    it("should notify if stopped", async () => {
-      const promise = new Promise((resolve) => {
-        runner.onActive((event) => {
-          if (event.status === "disabled") {
-            resolve();
-          }
-        });
-      });
-
-      await vscode.commands.executeCommand("vscode-webpack.stop");
-
-      return promise;
     });
   });
 });

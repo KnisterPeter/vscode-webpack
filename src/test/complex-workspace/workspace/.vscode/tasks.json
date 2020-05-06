@@ -4,12 +4,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "webpack",
       "type": "webpack",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
+      "configFile": "webpack.js",
+      "executionDirectory": "${workspaceFolder}/webpack"
     }
   ]
 }
