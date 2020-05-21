@@ -56,4 +56,29 @@ some error description
       })
     );
   });
+
+  it("should create an error from ts-loader output with line and column", () => {
+    const [uri, diagnostic] = createDiagnostic(
+      vscode.DiagnosticSeverity.Error,
+      `/complex-workspace/workspace/src/index.ts
+./src/index.ts
+[tsl] ERROR in /complex-workspace/workspace/src/index.ts(2,1)
+      TS2304: Cannot find name 'asdfd'.
+`,
+      "/complex-workspace/workspace"
+    );
+
+    expect(uri?.fsPath).toBe(
+      normalize("/complex-workspace/workspace/src/index.ts")
+    );
+    expect(diagnostic).toEqual(
+      expect.objectContaining({
+        severity: vscode.DiagnosticSeverity.Error,
+        source: "webpack",
+        range: range(1, 0, 1, 1),
+        message: `      TS2304: Cannot find name 'asdfd'.
+`,
+      })
+    );
+  });
 });
