@@ -1,3 +1,12 @@
+# [1.1.0](https://github.com/KnisterPeter/vscode-webpack/compare/v1.0.0...v1.1.0) (2020-05-21)
+
+
+### Features
+
+* add diagnostics for ts-loader ([43d55d0](https://github.com/KnisterPeter/vscode-webpack/commit/43d55d0be50c27534aec19b02efd032407190f5b)), closes [#28](https://github.com/KnisterPeter/vscode-webpack/issues/28)
+
+
+
 # [1.0.0](https://github.com/KnisterPeter/vscode-webpack/compare/v0.1.4...v1.0.0) (2020-05-06)
 
 
