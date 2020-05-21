@@ -33,8 +33,7 @@ jobs:
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-      - if: steps.yarn-cache.outputs.cache-hit != 'true'
-        run: |
+      - run: |
           yarn install
       - uses: GabrielBB/xvfb-action@v1.0
         with:
