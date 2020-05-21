@@ -111,41 +111,48 @@ describe("Extension Test with webpack in workspace", () => {
         }
       }
 
-      before(async () => {
+      before("open text document", async () => {
         doc = await vscode.workspace.openTextDocument(
-          vscode.Uri.file(
-            path.resolve(
-              vscode.workspace.workspaceFolders![0].uri.fsPath,
-              "src/index.js"
-            )
+          path.resolve(
+            vscode.workspace.workspaceFolders![0].uri.fsPath,
+            "src/index.js"
           )
         );
+        await vscode.window.showTextDocument(doc);
       });
 
-      before(async () => {
+      before("ensure task is started", async () => {
         await startTask();
         await new Promise((resolve) => {
-          runner.onActive((event) => {
-            if (event.status === "enabled") {
-              resolve();
-            }
-          });
+          if (runner.isActive) {
+            resolve();
+          } else {
+            runner.onActive((event) => {
+              if (event.status === "enabled") {
+                resolve();
+              }
+            });
+          }
         });
       });
 
-      after(async () => {
+      after("ensure task is stopped", async () => {
         await stopTask();
         await new Promise((resolve) => {
-          runner.onActive((event) => {
-            if (event.status === "disabled") {
-              resolve();
-            }
-          });
+          if (!runner.isActive) {
+            resolve();
+          } else {
+            runner.onActive((event) => {
+              if (event.status === "disabled") {
+                resolve();
+              }
+            });
+          }
         });
       });
 
       describe("when breaking and saving a file", () => {
-        afterEach(async () => {
+        afterEach("insert comment", async () => {
           await insertComment();
         });
 
@@ -170,7 +177,7 @@ describe("Extension Test with webpack in workspace", () => {
       });
 
       describe("when fixing and saving a file", async () => {
-        beforeEach(async () => {
+        beforeEach("remove comment", async () => {
           await removeComment();
         });
 
@@ -195,7 +202,7 @@ describe("Extension Test with webpack in workspace", () => {
       });
 
       describe("when inserting broken import", () => {
-        afterEach(async () => {
+        afterEach("remove broken import", async () => {
           await removeBrokenImport();
         });
 
