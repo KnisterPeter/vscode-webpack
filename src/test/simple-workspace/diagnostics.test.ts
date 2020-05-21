@@ -1,6 +1,11 @@
 import expect from "expect";
+import { sep } from "path";
 import * as vscode from "vscode";
 import { createDiagnostic } from "../../diagnostics";
+
+function normalize(input: string): string {
+  return input.replace(/\//g, sep);
+}
 
 function position(l: number, c: number): vscode.Position {
   return new vscode.Position(l, c);
@@ -20,7 +25,7 @@ some error description
       "/root"
     );
 
-    expect(uri?.fsPath).toBe("/root/src/index.js");
+    expect(uri?.fsPath).toBe(normalize("/root/src/index.js"));
     expect(diagnostic).toEqual(
       expect.objectContaining({
         severity: vscode.DiagnosticSeverity.Error,
@@ -40,7 +45,7 @@ some error description
       "/root"
     );
 
-    expect(uri?.fsPath).toBe("/root/src/index.js");
+    expect(uri?.fsPath).toBe(normalize("/root/src/index.js"));
     expect(diagnostic).toEqual(
       expect.objectContaining({
         severity: vscode.DiagnosticSeverity.Error,
