@@ -99,7 +99,7 @@
     "glob": "^7.1.6",
     "mocha": "^7.1.2",
     "prettier": "^2.0.5",
-    "shipjs": "^0.18.3",
+    "shipjs": "^0.19.0",
     "source-map-support": "^0.5.19",
     "typescript": "^3.8.3",
     "vsce": "^1.75.0",
