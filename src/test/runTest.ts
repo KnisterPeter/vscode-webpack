@@ -27,9 +27,16 @@ async function runWorkspace(name: string) {
 }
 
 async function main() {
-  await runWorkspace("empty-workspace");
-  await runWorkspace("simple-workspace");
-  await runWorkspace("complex-workspace");
+  const workspace = process.argv[2];
+  const workspaces = ["empty", "simple", "complex"];
+
+  if (workspace && workspaces.includes(workspace)) {
+    await runWorkspace(`${workspace}-workspace`);
+  } else {
+    for await (const workspace of workspaces) {
+      await runWorkspace(`${workspace}-workspace`);
+    }
+  }
 }
 
 main();
