@@ -36,9 +36,12 @@ async function startWebpack({
   configFile: string;
 }) {
   try {
+    // note: we use require here to import the workspace webpack version
     const webpackPath = require.resolve("webpack", { paths: [cwd] });
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const webpack = require(webpackPath);
 
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const config: webpack.Configuration = require(path.join(cwd, configFile));
 
     config.mode = "development";
