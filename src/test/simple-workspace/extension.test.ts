@@ -114,6 +114,7 @@ describe("Extension Test with webpack in workspace", () => {
       before("open text document", async () => {
         doc = await vscode.workspace.openTextDocument(
           path.resolve(
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             vscode.workspace.workspaceFolders![0].uri.fsPath,
             "src/index.js"
           )

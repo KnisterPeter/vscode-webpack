@@ -54,7 +54,7 @@ export class Runner implements vscode.Disposable {
     configFile?: string;
     diagnostics?: vscode.DiagnosticCollection;
     channel?: vscode.OutputChannel;
-  }) {
+  }): Promise<void> {
     if (
       !changed(this.workingDirectory, workingDirectory) &&
       !changed(this.configFile, configFile) &&
@@ -85,7 +85,7 @@ export class Runner implements vscode.Disposable {
     this.webpack?.send(command);
   }
 
-  public async start() {
+  public async start(): Promise<void> {
     if (!this.workingDirectory) {
       vscode.window.showErrorMessage(
         "No working directory (defaults to project root)"
@@ -216,14 +216,14 @@ export class Runner implements vscode.Disposable {
     }
   }
 
-  public invalidate() {
+  public invalidate(): void {
     this.diagnostics.clear();
     this.send({
       command: "invalidate",
     });
   }
 
-  public stop() {
+  public stop(): void {
     this.diagnostics.clear();
     this.send({ command: "stop" });
 
@@ -235,7 +235,7 @@ export class Runner implements vscode.Disposable {
     this.activeEmitter.fire({ status: "disabled" });
   }
 
-  public dispose() {
+  public dispose(): void {
     console.log(`Stop webpack runner`);
     this.stop();
   }

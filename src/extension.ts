@@ -5,7 +5,7 @@ import { WebpackTaskProvider } from "./webpack-task";
 
 export const runner = new Runner();
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   const diagnostics = vscode.languages.createDiagnosticCollection("webpack");
   const channel = vscode.window.createOutputChannel("webpack");
   const statusBarItem = configureStatusBar(runner);
@@ -33,7 +33,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
 }
 
-export function deactivate() {}
+export function deactivate(): void {
+  //
+}
 
 export function getProjectDirectory(): string | undefined {
   if (!vscode.workspace.workspaceFolders) {
