@@ -39,7 +39,7 @@ jobs:
             ${{ runner.os }}-yarn-
       - run: |
           yarn install
-      - uses: GabrielBB/xvfb-action@v1.0
+      - uses: GabrielBB/xvfb-action@v1.4
         with:
           run: |
             yarn test ${{ matrix.test-workspace }}
